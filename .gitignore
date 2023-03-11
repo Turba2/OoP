@@ -34,6 +34,7 @@
 
 .DS_Store
 build
+out
 
 # Cmake
 CMakeLists.txt.user
