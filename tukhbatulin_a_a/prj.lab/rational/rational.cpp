@@ -75,7 +75,6 @@ Rational& Rational::operator*=(const Rational& temp) noexcept{
 Rational& Rational::operator/=(const Rational& temp){
 	if(temp.num_ == 0){
 		throw std::invalid_argument("invalid argument");
-		//return 0; // ERROR!
 	}
 	num_ *= temp.denom_;
 	denom_ *= temp.num_;
@@ -154,7 +153,6 @@ Rational operator*(const Rational& lhs, const int32_t& temp) noexcept{
 Rational operator/(const Rational& lhs, const int32_t& temp){
 	if(temp == 0){
 		throw std::invalid_argument("invalid argument");
-		//return 0; // ERROR!
 	}
 	Rational divis = lhs;
 	divis /= Rational(temp);
@@ -169,7 +167,6 @@ Rational pow(Rational temp, int32_t k) {
 		if (temp == 0){
 			throw std::invalid_argument("invalid argument");
 			return temp;
-			//return temp; // ERROR!
 		}
 		temp = (1 / temp);
 		k *= -1;
@@ -200,27 +197,56 @@ std::ostream& Rational::writeTo(std::ostream& ostrm) const noexcept{
 }
 
 std::istream& Rational::readFrom(std::istream& istrm){
-	int32_t tmp_num_(0), tmp_denom_(0);
-	char symb(0);
-	istrm >> tmp_num_;
-	if(isspace(istrm.peek())){
-		istrm.setstate(std::ios_base::failbit);
-		istrm.setstate(std::ios_base::eofbit);
-	}
-	istrm >> symb; 
-	if (isspace(istrm.peek()) || symb != slash){
-		istrm.setstate(std::ios_base::failbit);
-		istrm.setstate(std::ios_base::eofbit);
-	}
-	istrm >> tmp_denom_;
-	if (tmp_denom_ <= 0){
-		istrm.setstate(std::ios_base::failbit);
-		istrm.setstate(std::ios_base::eofbit);
-	}
-	if(istrm.good()){
-		num_ = tmp_num_;
-		denom_ = tmp_denom_;
-		gcd();
-	}
-	return istrm;
+    char sym('-');
+    while (std::isspace(istrm.peek())) {
+        sym = istrm.get();
+    }
+    int32_t numInp_(0);
+    int32_t denomInp_(0);
+    sym = '-' ;
+    bool isNeg(false);
+    if (istrm.peek() == '-') {
+        isNeg = true;
+        sym = istrm.get();
+    }
+
+    while (std::isdigit(istrm.peek())) {
+        sym = istrm.get();
+        numInp_ *= 10;
+        numInp_ += static_cast<int>(sym - '0');
+    }
+    if (sym == '-') {
+        istrm.setstate(std::ios_base::failbit);
+        return istrm;
+    }
+
+    if (istrm.peek() != '/') {
+        istrm.setstate(std::ios_base::failbit);
+        return istrm;
+    }
+    sym = istrm.get();
+
+    while (std::isdigit(istrm.peek())) {
+        sym = istrm.get();
+        denomInp_ *= 10;
+        denomInp_ += static_cast<int>(sym - '0');
+    }
+    if (sym == '/') {
+        istrm.setstate(std::ios_base::failbit);
+        return istrm;
+    }
+    
+    if (istrm.good() || istrm.eof()) {
+        if (denomInp_ == 0) {
+            istrm.setstate(std::ios_base::failbit);
+            return istrm;
+        }
+        num_ = numInp_;
+        denom_ = denomInp_;
+        if (isNeg) {
+            num_ *= -1;
+        }
+        gcd();
+    }
+    return istrm;
 }
